@@ -56,6 +56,9 @@ namespace transport_catalogue {
 
         std::set<std::string_view>& GetBuses(stop::Stop* stop);
 
+        std::unordered_map<std::string_view, bus::Bus*>& GetAllBuses();
+
+        std::unordered_map<std::string_view, stop::Stop*>& GetAllStops();
     private:
         std::unordered_map<stop::Stop*, std::set<std::string_view>> buses_to_stop_;
         std::unordered_map<std::string_view, bus::Bus*> stop_to_bus_;

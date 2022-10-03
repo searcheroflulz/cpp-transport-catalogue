@@ -66,4 +66,12 @@ namespace transport_catalogue {
     std::set<std::string_view>& TransportCatalogue::GetBuses(stop::Stop* stop) {
         return buses_to_stop_.at(stop);
     }
+
+    std::unordered_map<std::string_view, bus::Bus*>& TransportCatalogue::GetAllBuses() {
+        return stop_to_bus_;
+    }
+
+    std::unordered_map<std::string_view, stop::Stop*>& TransportCatalogue::GetAllStops() {
+        return stops_;
+    }
 }
