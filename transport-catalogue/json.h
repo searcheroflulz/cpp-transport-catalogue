@@ -56,56 +56,24 @@ namespace json {
         const std::string& AsString() const;
 
 
-        bool IsInt() const {
-            return std::holds_alternative<int>(value_);
-        }
-        bool IsDouble() const {
-            return IsInt() || IsPureDouble();
-        }
-        bool IsPureDouble() const {
-            return std::holds_alternative<double>(value_);
-        }
-        bool IsBool() const {
-            return std::holds_alternative<bool>(value_);
-        }
-        bool IsString() const {
-            return std::holds_alternative<std::string>(value_);
-        }
-        bool IsNull() const {
-            return std::holds_alternative<std::nullptr_t>(value_);
-        }
-        bool IsArray() const {
-            return std::holds_alternative<Array>(value_);
-        }
-        bool IsMap() const {
-            return std::holds_alternative<Dict>(value_);
-        }
+        bool IsInt() const;
+        bool IsDouble() const;
+        bool IsPureDouble() const;
+        bool IsBool() const;
+        bool IsString() const;
+        bool IsNull() const;
+        bool IsArray() const;
+        bool IsMap() const;
 
-        bool operator==(const Node& rhs) const {
-            return GetValue() == rhs.GetValue();
-        }
+        bool operator==(const Node& rhs) const;
 
-        const Value& GetValue() const {
-            return value_;
-        }
+        const Value& GetValue() const;
 
-        Value& GetValue() {
-            return value_;
-        }
+        Value& GetValue();
 
-        double AsDouble() const {
-            if (!IsDouble()) {
-                throw std::logic_error("This is not double");
-            }
-            return IsPureDouble() ? std::get<double>(value_) : AsInt();
-        }
+        double AsDouble() const;
 
-        bool AsBool() const {
-            if (!IsBool()) {
-                throw std::logic_error("This is not bool");
-            }
-            return std::get<bool>(value_);
-        }
+        bool AsBool() const;
     private:
         Value value_;
     };

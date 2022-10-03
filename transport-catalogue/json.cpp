@@ -359,4 +359,55 @@ namespace json {
         PrintNode(doc.GetRoot(), PrintContext{output});
     }
 
+    bool Node::IsInt() const {
+        return std::holds_alternative<int>(value_);
+    }
+    bool Node::IsDouble() const {
+        return IsInt() || IsPureDouble();
+    }
+    bool Node::IsPureDouble() const {
+        return std::holds_alternative<double>(value_);
+    }
+    bool Node::IsBool() const {
+        return std::holds_alternative<bool>(value_);
+    }
+    bool Node::IsString() const {
+        return std::holds_alternative<std::string>(value_);
+    }
+    bool Node::IsNull() const {
+        return std::holds_alternative<std::nullptr_t>(value_);
+    }
+    bool Node::IsArray() const {
+        return std::holds_alternative<Array>(value_);
+    }
+    bool Node::IsMap() const {
+        return std::holds_alternative<Dict>(value_);
+    }
+
+    bool Node::operator==(const Node& rhs) const {
+        return GetValue() == rhs.GetValue();
+    }
+
+    const Node::Value& Node::GetValue() const {
+        return Node::value_;
+    }
+
+    Node::Value& Node::GetValue() {
+        return value_;
+    }
+
+    double Node::AsDouble() const {
+        if (!IsDouble()) {
+            throw std::logic_error("This is not double");
+        }
+        return IsPureDouble() ? std::get<double>(value_) : AsInt();
+    }
+
+    bool Node::AsBool() const {
+        if (!IsBool()) {
+            throw std::logic_error("This is not bool");
+        }
+        return std::get<bool>(value_);
+    }
+
 }  // namespace json
