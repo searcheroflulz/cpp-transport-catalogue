@@ -184,5 +184,4 @@ namespace json {
         return builder_.EndArray();
     }
 
-
 }
