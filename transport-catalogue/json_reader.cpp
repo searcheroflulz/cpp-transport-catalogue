@@ -167,22 +167,27 @@ namespace json_reader {
     }
 
     void JsonReader::OutputRequest(const std::vector<json::Node>& info) {
-        json::Node result(json::Array{});
+        json::Builder builder;
+        builder.StartArray();
+        //json::Node result(json::Array{});
         if (info.empty()) {
             return;
         }
         for (auto& request: info) {
             if (request.AsMap().at("type").AsString() == "Map") {
                 json::Node render_map(json::Dict{{"map", map_}, {"request_id", request.AsMap().at("id").AsInt()}});
-                std::get<json::Array>(result.GetValue()).push_back(render_map);
+                //std::get<json::Array>(result.GetValue()).push_back(render_map);
+                builder.Value(render_map.GetValue());
             }
             if (request.AsMap().at("type").AsString() == "Stop") {
-                std::get<json::Array>(result.GetValue()).push_back(BuildJsonStop(request.AsMap()));
+                builder.Value(BuildJsonStop(request.AsMap()).GetValue());
+                //std::get<json::Array>(result.GetValue()).push_back(BuildJsonStop(request.AsMap()));
             }
             if (request.AsMap().at("type").AsString() == "Bus") {
-                std::get<json::Array>(result.GetValue()).push_back(BuildJsonBus(request.AsMap()));
+                builder.Value(BuildJsonBus(request.AsMap()).GetValue());
+                //std::get<json::Array>(result.GetValue()).push_back(BuildJsonBus(request.AsMap()));
             }
         }
-        json::PrintNode(result, json::PrintContext{std::cout});
+        json::PrintNode(builder.Build(), json::PrintContext{std::cout});
     }
 }

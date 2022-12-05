@@ -2,6 +2,7 @@
 #include "transport_catalogue.h"
 #include "json.h"
 #include "map_renderer.h"
+#include "json_builder.h"
 #include "unordered_set"
 #include <variant>
 
