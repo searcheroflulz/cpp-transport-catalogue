@@ -36,9 +36,9 @@ namespace json_reader {
 
         void LoadBuses(const std::map<std::string, json::Node>& document);
 
-        json::Node BuildJsonBus(const std::map<std::string, json::Node>& document);
+        void BuildJsonBus(json::Builder& builder, const std::map<std::string, json::Node>& document);
 
-        json::Node BuildJsonStop(const std::map<std::string, json::Node>& document);
+        void BuildJsonStop(json::Builder& builder, const std::map<std::string, json::Node>& document);
 
         void OutputRequest(const std::vector<json::Node>& info);
 

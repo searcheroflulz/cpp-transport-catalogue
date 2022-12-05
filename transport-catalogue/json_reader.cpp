@@ -121,7 +121,7 @@ namespace json_reader {
         catalogue_.AddBus(ptr->name, ptr);
     }
 
-    json::Node JsonReader::BuildJsonBus(const std::map<std::string, json::Node>& document) {
+    void JsonReader::BuildJsonBus(json::Builder& builder, const std::map<std::string, json::Node>& document) {
         uint32_t route_length_int = 0;
         size_t stops_on_route = 0;
         size_t unique_stops_count = 0;
@@ -134,7 +134,8 @@ namespace json_reader {
             unique_stops_count = unique_stops.size();
             route_length = catalogue_.GetRouteLength(bus->name);
         } else {
-            return json::Node(json::Dict{{"request_id", document.at("id").AsInt()}, {"error_message", std::string{"not found"}}});
+            builder.StartDict().Key("request_id").Value(document.at("id").AsInt()).Key("error_message").Value(std::string{"not found"}).EndDict();
+            return;
         }
 
         for (size_t i = 0; i != bus->route.size() - 1; i++) {
@@ -146,48 +147,58 @@ namespace json_reader {
             }
         }
         double curvature = route_length_int / route_length;
-        return json::Node(json::Dict{{"curvature", curvature}, {"request_id", document.at("id").AsInt()}, {"route_length", static_cast<int>(route_length_int)}, {"stop_count", static_cast<int>(stops_on_route)}, {"unique_stop_count", static_cast<int>(unique_stops_count)}});
+        builder.StartDict();
+        builder.Key("curvature").Value(curvature)
+        .Key("request_id").Value(document.at("id").AsInt())
+        .Key("route_length").Value(static_cast<int>(route_length_int))
+        .Key("stop_count").Value(static_cast<int>(stops_on_route))
+        .Key("unique_stop_count").Value(static_cast<int>(unique_stops_count)).EndDict();
     }
 
-    json::Node JsonReader::BuildJsonStop(const std::map<std::string, json::Node>& document) {
+    void JsonReader::BuildJsonStop(json::Builder& builder, const std::map<std::string, json::Node>& document) {
         auto ptr = catalogue_.FindStop(document.at("name").AsString());
         if (ptr != nullptr) {
-            std::vector<json::Node> buses_vect;
+            std::vector<std::string> buses_vect;
             if (catalogue_.GetBuses(ptr).empty()) {
-                return json::Node(json::Dict{{"buses", buses_vect}, {"request_id", document.at("id").AsInt()}});
+                builder.StartDict().Key("buses").StartArray();
+                for (const auto& bus: buses_vect) {
+                    builder.Value(bus);
+                }
+                builder.EndArray().Key("request_id").Value(document.at("id").AsInt()).EndDict();
+                return;
             }
             std::set<std::string_view> buses = catalogue_.GetBuses(ptr);
             for (auto& bus: buses) {
-                buses_vect.emplace_back(std::string{bus});
+                buses_vect.emplace_back(bus);
             }
-            json::Node result(buses_vect);
-            return {json::Dict{{"buses", json::Node(result)}, {"request_id", document.at("id").AsInt()}}};
+            builder.StartDict().Key("buses").StartArray();
+            for (const auto& bus: buses_vect) {
+                builder.Value(bus);
+            }
+            builder.EndArray().Key("request_id").Value(document.at("id").AsInt()).EndDict();
+            return;
         }
-        return json::Node(json::Dict{{"request_id", document.at("id").AsInt()}, {"error_message", std::string{"not found"}}});
+        builder.StartDict().Key("request_id").Value(document.at("id").AsInt()).Key("error_message").Value(std::string{"not found"}).EndDict();
     }
 
     void JsonReader::OutputRequest(const std::vector<json::Node>& info) {
         json::Builder builder;
         builder.StartArray();
-        //json::Node result(json::Array{});
         if (info.empty()) {
             return;
         }
         for (auto& request: info) {
             if (request.AsMap().at("type").AsString() == "Map") {
-                json::Node render_map(json::Dict{{"map", map_}, {"request_id", request.AsMap().at("id").AsInt()}});
-                //std::get<json::Array>(result.GetValue()).push_back(render_map);
-                builder.Value(render_map.GetValue());
+                builder.StartDict().Key("map").Value(map_).Key("request_id").Value(request.AsMap().at("id").AsInt()).EndDict();
             }
             if (request.AsMap().at("type").AsString() == "Stop") {
-                builder.Value(BuildJsonStop(request.AsMap()).GetValue());
-                //std::get<json::Array>(result.GetValue()).push_back(BuildJsonStop(request.AsMap()));
+                BuildJsonStop(builder, request.AsMap());
             }
             if (request.AsMap().at("type").AsString() == "Bus") {
-                builder.Value(BuildJsonBus(request.AsMap()).GetValue());
-                //std::get<json::Array>(result.GetValue()).push_back(BuildJsonBus(request.AsMap()));
+                BuildJsonBus(builder, request.AsMap());
             }
         }
+        builder.EndArray();
         json::PrintNode(builder.Build(), json::PrintContext{std::cout});
     }
 }
