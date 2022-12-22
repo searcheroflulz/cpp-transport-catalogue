@@ -1,5 +1,5 @@
 #include "json_reader.h"
-#include "transport_router.h"
+
 
 /*
  * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
@@ -191,18 +191,18 @@ namespace json_reader {
         builder.StartDict().Key("request_id").Value(document.at("id").AsInt()).Key("error_message").Value(std::string{"not found"}).EndDict();
     }
 
-    void JsonReader::BuildJsonRoute(json::Builder& builder, const RouteRequest& request, const transport_catalogue::TransportCatalogue& catalogue) {
+    void JsonReader::BuildJsonRoute(json::Builder& builder, const RouteRequest& request, transport_catalogue::TransportCatalogue catalogue, transport_router::TransportRouter& router) {
         if (catalogue_.FindStop(request.from) && catalogue_.FindStop(request.to)) {
-            std::optional<StopPairVertexId> pair_vertex_id_stop_from = transport_router.GetPairVertexId(transport_catalogue.GetStop(request.from));
-            std::optional<StopPairVertexId> pair_vertex_id_stop_to = transport_router.GetPairVertexId(transport_catalogue.GetStop(request.to));
-            std::optional<RouteInfo> route_info = transport_router.GetRouteInfo(pair_vertex_id_stop_from->bus_wait_begin, pair_vertex_id_stop_to->bus_wait_begin);
+            std::optional<StopPairVertexId> pair_vertex_id_stop_from = router.GetPairVertexId(catalogue.FindStop(request.from));
+            std::optional<StopPairVertexId> pair_vertex_id_stop_to = router.GetPairVertexId(catalogue.FindStop(request.to));
+            std::optional<RouteInfo> route_info = router.GetRouteInfo(pair_vertex_id_stop_from->bus_wait_begin, pair_vertex_id_stop_to->bus_wait_begin);
             if (route_info) {
                 builder.StartDict().Key("request_id"s).Value(request.id).Key("total_time"s).Value(route_info->total_time).Key("items"s).StartArray();
                 for (auto& info : route_info->edges) {
                     if (info.index() == 1) {
-                        BuildJsonBusEdge(builder, get<BusEdgeInfo>(info));
+                        BuildJsonBusEdge(builder, std::get<BusEdgeInfo>(info));
                     } else {
-                        BuildJsonWaitEdge(builder, get<WaitEdgeInfo>(info));
+                        BuildJsonWaitEdge(builder, std::get<WaitEdgeInfo>(info));
                     }
                 }
                 builder.EndArray().EndDict();
@@ -213,8 +213,26 @@ namespace json_reader {
             BuildJsonErrorMessage(builder, request.id);
         }
     }
+
+    void JsonReader::BuildJsonErrorMessage(json::Builder& builder, int id) {
+        builder.StartDict().Key("error_message"s).Value("not found"s).Key("request_id"s).Value(id).EndDict();
+    }
+
+    void JsonReader::BuildJsonBusEdge(json::Builder& builder, const BusEdgeInfo& bus_edge_info) {
+        builder.StartDict().Key("type"s).Value("Bus"s)
+                .Key("bus"s).Value(std::string(bus_edge_info.bus_name))
+                .Key("span_count"s).Value(static_cast<int>(bus_edge_info.span_count))
+                .Key("time"s).Value(bus_edge_info.time).EndDict();
+    }
+
+    void JsonReader::BuildJsonWaitEdge(json::Builder& builder, const WaitEdgeInfo& wait_edge_info) {
+        builder.StartDict().Key("type"s).Value("Wait"s)
+                .Key("stop_name"s).Value(std::string(wait_edge_info.stop_name))
+                .Key("time"s).Value(wait_edge_info.time).EndDict();
+    }
     void JsonReader::OutputRequest(const std::vector<json::Node>& info) {
         transport_router::TransportRouter router_(catalogue_.GetRoutingSettings());
+        router_.BuildTransportRouter(catalogue_);
         json::Builder builder;
         builder.StartArray();
         if (info.empty()) {
@@ -232,7 +250,7 @@ namespace json_reader {
             }
             if (request.AsMap().at("type").AsString() == "Route") {
                 RouteRequest router_request{request.AsMap().at("from"s).AsString(), request.AsMap().at("to"s).AsString(), (request.AsMap().at("id"s).AsInt())};
-                BuildJsonRoute(builder, router_request, catalogue_);
+                BuildJsonRoute(builder, router_request, catalogue_, router_);
             }
         }
         builder.EndArray();

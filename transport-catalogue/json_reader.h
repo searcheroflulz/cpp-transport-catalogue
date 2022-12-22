@@ -6,6 +6,7 @@
 #include "unordered_set"
 #include <variant>
 #include "domain.h"
+#include "transport_router.h"
 
 
 /*
@@ -45,7 +46,13 @@ namespace json_reader {
 
         void OutputRequest(const std::vector<json::Node>& info);
 
-        void BuildJsonRoute(json::Builder& builder, const RouteRequest& request, const transport_catalogue::TransportCatalogue& catalogue);
+        void BuildJsonRoute(json::Builder& builder, const RouteRequest& request, transport_catalogue::TransportCatalogue catalogue, transport_router::TransportRouter& router);
+
+        void BuildJsonWaitEdge(json::Builder& builder, const WaitEdgeInfo& wait_edge_info);
+
+        void BuildJsonBusEdge(json::Builder& builder, const BusEdgeInfo& bus_edge_info);
+
+        void BuildJsonErrorMessage(json::Builder& builder, int id);
 
     private:
         transport_catalogue::TransportCatalogue& catalogue_;
