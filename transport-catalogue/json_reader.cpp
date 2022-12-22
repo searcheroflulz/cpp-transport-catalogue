@@ -1,4 +1,5 @@
 #include "json_reader.h"
+#include "transport_router.h"
 
 /*
  * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
@@ -50,6 +51,11 @@ namespace json_reader {
         }
     }
 
+    void JsonReader::LoadRoutingSettings(const std::map<std::string, json::Node>& info) {
+        catalogue_.SetRoutingSettings(transport_catalogue::RoutingSettings{info.at("bus_wait_time").AsInt(),
+                                                                           info.at("bus_velocity").AsDouble()});
+    }
+
     void JsonReader::LoadDataFromJson() {
         auto asmap = document_.AsMap();
         for (auto& temp: asmap) {
@@ -68,6 +74,10 @@ namespace json_reader {
             if (temp.first == "stat_requests") {
                 auto stat_requests = temp.second.AsArray();
                 OutputRequest(stat_requests);
+            }
+            if (temp.first == "routing_settings") {
+                auto routing_settings = temp.second.AsMap();
+                LoadRoutingSettings(routing_settings);
             }
         }
     }
@@ -181,7 +191,30 @@ namespace json_reader {
         builder.StartDict().Key("request_id").Value(document.at("id").AsInt()).Key("error_message").Value(std::string{"not found"}).EndDict();
     }
 
+    void JsonReader::BuildJsonRoute(json::Builder& builder, const RouteRequest& request, const transport_catalogue::TransportCatalogue& catalogue) {
+        if (catalogue_.FindStop(request.from) && catalogue_.FindStop(request.to)) {
+            std::optional<StopPairVertexId> pair_vertex_id_stop_from = transport_router.GetPairVertexId(transport_catalogue.GetStop(request.from));
+            std::optional<StopPairVertexId> pair_vertex_id_stop_to = transport_router.GetPairVertexId(transport_catalogue.GetStop(request.to));
+            std::optional<RouteInfo> route_info = transport_router.GetRouteInfo(pair_vertex_id_stop_from->bus_wait_begin, pair_vertex_id_stop_to->bus_wait_begin);
+            if (route_info) {
+                builder.StartDict().Key("request_id"s).Value(request.id).Key("total_time"s).Value(route_info->total_time).Key("items"s).StartArray();
+                for (auto& info : route_info->edges) {
+                    if (info.index() == 1) {
+                        BuildJsonBusEdge(builder, get<BusEdgeInfo>(info));
+                    } else {
+                        BuildJsonWaitEdge(builder, get<WaitEdgeInfo>(info));
+                    }
+                }
+                builder.EndArray().EndDict();
+            } else {
+                BuildJsonErrorMessage(builder, request.id);
+            }
+        } else {
+            BuildJsonErrorMessage(builder, request.id);
+        }
+    }
     void JsonReader::OutputRequest(const std::vector<json::Node>& info) {
+        transport_router::TransportRouter router_(catalogue_.GetRoutingSettings());
         json::Builder builder;
         builder.StartArray();
         if (info.empty()) {
@@ -196,6 +229,10 @@ namespace json_reader {
             }
             if (request.AsMap().at("type").AsString() == "Bus") {
                 BuildJsonBus(builder, request.AsMap());
+            }
+            if (request.AsMap().at("type").AsString() == "Route") {
+                RouteRequest router_request{request.AsMap().at("from"s).AsString(), request.AsMap().at("to"s).AsString(), (request.AsMap().at("id"s).AsInt())};
+                BuildJsonRoute(builder, router_request, catalogue_);
             }
         }
         builder.EndArray();

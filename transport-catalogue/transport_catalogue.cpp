@@ -74,4 +74,12 @@ namespace transport_catalogue {
     std::unordered_map<std::string_view, stop::Stop*>& TransportCatalogue::GetAllStops() {
         return stops_;
     }
+
+    void TransportCatalogue::SetRoutingSettings(RoutingSettings settings) {
+        this->routing_settings_ = settings;
+    }
+
+    RoutingSettings& TransportCatalogue::GetRoutingSettings() {
+        return routing_settings_;
+    }
 }

@@ -5,6 +5,7 @@
 #include "json_builder.h"
 #include "unordered_set"
 #include <variant>
+#include "domain.h"
 
 
 /*
@@ -28,6 +29,8 @@ namespace json_reader {
 
         void LoadRenderSettings(const std::map<std::string, json::Node>& info);
 
+        void LoadRoutingSettings(const std::map<std::string, json::Node>& info);
+
         void LoadDataFromJson();
 
         void InputDataToCatalogue(const std::vector<json::Node>& info);
@@ -41,6 +44,8 @@ namespace json_reader {
         void BuildJsonStop(json::Builder& builder, const std::map<std::string, json::Node>& document);
 
         void OutputRequest(const std::vector<json::Node>& info);
+
+        void BuildJsonRoute(json::Builder& builder, const RouteRequest& request, const transport_catalogue::TransportCatalogue& catalogue);
 
     private:
         transport_catalogue::TransportCatalogue& catalogue_;

@@ -35,6 +35,11 @@ namespace transport_catalogue {
         };
     }
 
+    struct RoutingSettings {
+        int bus_wait_time_;
+        double bus_velocity_;
+    };
+
     class TransportCatalogue {
         using stop_stop_to_distance = std::unordered_map<std::pair<stop::Stop*, stop::Stop*>, uint32_t, stop::hash::Hash>;
     public:
@@ -59,10 +64,15 @@ namespace transport_catalogue {
         std::unordered_map<std::string_view, bus::Bus*>& GetAllBuses();
 
         std::unordered_map<std::string_view, stop::Stop*>& GetAllStops();
+
+        void SetRoutingSettings(RoutingSettings settings);
+
+        RoutingSettings& GetRoutingSettings();
     private:
         std::unordered_map<stop::Stop*, std::set<std::string_view>> buses_to_stop_;
         std::unordered_map<std::string_view, bus::Bus*> stop_to_bus_;
         std::unordered_map<std::string_view, stop::Stop*> stops_;
         stop_stop_to_distance distance_between_stops_;
+        RoutingSettings routing_settings_;
     };
 }
