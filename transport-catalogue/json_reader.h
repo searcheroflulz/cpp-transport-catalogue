@@ -8,11 +8,6 @@
 #include "domain.h"
 #include "transport_router.h"
 
-
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
 namespace json_reader {
     class JsonReader {
     public:
@@ -52,7 +47,7 @@ namespace json_reader {
 
         void BuildJsonBusEdge(json::Builder& builder, const BusEdgeInfo& bus_edge_info);
 
-        void BuildJsonErrorMessage(json::Builder& builder, int id);
+        void ErrorMessage(json::Builder& builder, int id);
 
     private:
         transport_catalogue::TransportCatalogue& catalogue_;

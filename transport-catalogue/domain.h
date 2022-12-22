@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "graph.h"
 #include <variant>
+#include "graph.h"
 
 
     struct RouteRequest {

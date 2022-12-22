@@ -1,11 +1,5 @@
 #include "json_reader.h"
 
-
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
-
 namespace json_reader {
     svg::Color JsonReader::LoadColor(const json::Node& data) {
         svg::Color result;
@@ -207,14 +201,14 @@ namespace json_reader {
                 }
                 builder.EndArray().EndDict();
             } else {
-                BuildJsonErrorMessage(builder, request.id);
+                ErrorMessage(builder, request.id);
             }
         } else {
-            BuildJsonErrorMessage(builder, request.id);
+            ErrorMessage(builder, request.id);
         }
     }
 
-    void JsonReader::BuildJsonErrorMessage(json::Builder& builder, int id) {
+    void JsonReader::ErrorMessage(json::Builder& builder, int id) {
         builder.StartDict().Key("error_message"s).Value("not found"s).Key("request_id"s).Value(id).EndDict();
     }
 
@@ -230,6 +224,7 @@ namespace json_reader {
                 .Key("stop_name"s).Value(std::string(wait_edge_info.stop_name))
                 .Key("time"s).Value(wait_edge_info.time).EndDict();
     }
+
     void JsonReader::OutputRequest(const std::vector<json::Node>& info) {
         transport_router::TransportRouter router_(catalogue_.GetRoutingSettings());
         router_.BuildTransportRouter(catalogue_);
