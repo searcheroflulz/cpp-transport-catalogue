@@ -19,12 +19,13 @@ namespace graph {
 
     template <typename Weight>
     class DirectedWeightedGraph {
-    private:
+    public:
         using IncidenceList = std::vector<EdgeId>;
         using IncidentEdgesRange = ranges::Range<typename IncidenceList::const_iterator>;
-
-    public:
         DirectedWeightedGraph() = default;
+
+        DirectedWeightedGraph(std::vector<graph::Edge<double>>&& edges, std::vector<IncidenceList>&& incidence_lists);
+
         explicit DirectedWeightedGraph(size_t vertex_count);
         EdgeId AddEdge(const Edge<Weight>& edge);
 
@@ -32,6 +33,10 @@ namespace graph {
         size_t GetEdgeCount() const;
         const Edge<Weight>& GetEdge(EdgeId edge_id) const;
         IncidentEdgesRange GetIncidentEdges(VertexId vertex) const;
+
+        const std::vector<Edge<Weight>>& GetEdges() const;
+
+        const std::vector<IncidenceList>& GetIncidenceList() const;
 
     private:
         std::vector<Edge<Weight>> edges_;
@@ -57,6 +62,10 @@ namespace graph {
     }
 
     template <typename Weight>
+    DirectedWeightedGraph<Weight>::DirectedWeightedGraph(std::vector<graph::Edge<double>>&& edges,
+                                                         std::vector<IncidenceList>&& incidence_lists) : edges_(std::move(edges)), incidence_lists_(std::move(incidence_lists)) {}
+
+    template <typename Weight>
     size_t DirectedWeightedGraph<Weight>::GetEdgeCount() const {
         return edges_.size();
     }
@@ -70,5 +79,15 @@ namespace graph {
     typename DirectedWeightedGraph<Weight>::IncidentEdgesRange
     DirectedWeightedGraph<Weight>::GetIncidentEdges(VertexId vertex) const {
         return ranges::AsRange(incidence_lists_.at(vertex));
+    }
+
+    template <typename Weight>
+    const std::vector<Edge<Weight>>& DirectedWeightedGraph<Weight>::GetEdges() const {
+        return edges_;
+    }
+
+    template <typename Weight>
+    const std::vector<typename DirectedWeightedGraph<Weight>::IncidenceList>& DirectedWeightedGraph<Weight>::GetIncidenceList() const {
+        return incidence_lists_;
     }
 }  // namespace graph

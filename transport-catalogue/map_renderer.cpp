@@ -170,4 +170,8 @@ namespace map_renderer {
                 .SetData(std::string(name));
         render_.Add(std::move(text));
     }
+
+    MapRenderSettings & MapRenderer::GetRenderSettings() const {
+        return settings_;
+    }
 }

@@ -66,4 +66,40 @@ namespace transport_router {
         }
         return std::nullopt;
     }
+
+    transport_catalogue::RoutingSettings& TransportRouter::GetRoutingSettings() const {
+        return settings_;
+    }
+
+    const graph::DirectedWeightedGraph<double>& TransportRouter::GetGraph() const {
+        return *graph_;
+    }
+
+    const graph::Router<double>& TransportRouter::GetRouter() const {
+        return *router_;
+    }
+
+    const std::unordered_map<transport_catalogue::stop::Stop*, StopPairVertexId>& TransportRouter::GetStopAsPairNumber() const {
+        return stop_as_pair_number_;
+    }
+
+    const std::unordered_map<graph::EdgeId, std::variant<WaitEdgeInfo, BusEdgeInfo>> TransportRouter::GetEdgeidToType() const {
+        return edgeid_to_edgeinfo_;
+    }
+
+    void TransportRouter::SetGraph(std::vector<graph::Edge<double>>&& edges, std::vector<graph::DirectedWeightedGraph<double>::IncidenceList>&& incidence_lists) {
+        graph_ = std::make_unique<graph::DirectedWeightedGraph<double>>(move(edges), move(incidence_lists));
+    }
+
+    void TransportRouter::SetStopAsPairNumber(std::unordered_map<transport_catalogue::stop::Stop*, StopPairVertexId>&& stop_as_pair_number) {
+        stop_as_pair_number_ = std::move(stop_as_pair_number);
+    }
+
+    void TransportRouter::SetEdgeidToType(std::unordered_map<graph::EdgeId, EdgeInfo>&& edge_id_to_type) {
+        edgeid_to_edgeinfo_ = std::move(edge_id_to_type);
+    }
+
+    void TransportRouter::SetRouter(graph::Router<double>::RoutesInternalData&& routes_internal_data) {
+        router_ = std::make_unique<graph::Router<double>>(*graph_, std::move(routes_internal_data));
+    }
 }

@@ -109,7 +109,7 @@ namespace map_renderer {
 
     class MapRenderer {
     public:
-        explicit MapRenderer(MapRenderSettings& settings) : settings_(settings) {
+        explicit MapRenderer(MapRenderSettings settings) : settings_(settings) {
         }
         void LoadBuses(const std::unordered_map<std::string_view, transport_catalogue::bus::Bus*>& buses);
 
@@ -118,6 +118,8 @@ namespace map_renderer {
         void Render(std::ostream& out);
 
         std::string Output();
+
+        MapRenderSettings& GetRenderSettings() const;
 
 
     private:

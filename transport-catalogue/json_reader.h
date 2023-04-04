@@ -17,9 +17,16 @@ namespace json_reader {
             int distance;
         };
 
-        JsonReader(transport_catalogue::TransportCatalogue& catalogue, const json::Node& document) : catalogue_(catalogue), document_(document) {
+        JsonReader(transport_catalogue::TransportCatalogue& catalogue, const json::Node& document, transport_router::TransportRouter* router) : catalogue_(&catalogue), document_(document),
+        router_(router){
             LoadDataFromJson();
         }
+
+        JsonReader(const json::Node& document) : document_(document){
+            LoadDataFromJson();
+        }
+
+        SerializationSettings GetSerializationSettings();
 
         svg::Color LoadColor(const json::Node& data);
 
@@ -39,7 +46,7 @@ namespace json_reader {
 
         void BuildJsonStop(json::Builder& builder, const std::map<std::string, json::Node>& document);
 
-        void OutputRequest(const std::vector<json::Node>& info);
+        void LoadRequest(const std::vector<json::Node>& info);
 
         void BuildJsonRoute(json::Builder& builder, const RouteRequest& request, transport_catalogue::TransportCatalogue catalogue, transport_router::TransportRouter& router);
 
@@ -49,13 +56,22 @@ namespace json_reader {
 
         void ErrorMessage(json::Builder& builder, int id);
 
+        map_renderer::MapRenderSettings& GetMapRenderSettings();
+        transport_router::TransportRouter* GetTransportRouter();
+
+        void OutputRequest(transport_catalogue::TransportCatalogue* catalogue);
+
     private:
-        transport_catalogue::TransportCatalogue& catalogue_;
+        transport_router::TransportRouter* router_;
+        transport_catalogue::TransportCatalogue* catalogue_;
         std::deque<transport_catalogue::stop::Stop> stops_;
         std::deque<Distance> distance_between_stops_;
         const json::Node& document_;
         std::deque<transport_catalogue::bus::Bus> buses_;
         map_renderer::MapRenderSettings settings_;
         std::string map_;
+        SerializationSettings serializationsettings_;
+        SerializationSettings GetSerializationSettingsFromJson();
+        std::vector<json::Node> json_data_;
     };
 }

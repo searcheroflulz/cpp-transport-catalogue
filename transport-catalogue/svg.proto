@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package svg_proto;
+
+message Color {
+  bool is_rgb = 1;
+  bool is_rgba = 2;
+  bool is_string = 3;
+  uint32 red = 4;
+  uint32 green = 5;
+  uint32 blue = 6;
+  double opacity = 7;
+  string color = 8;
+}

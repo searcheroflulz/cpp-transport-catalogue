@@ -68,6 +68,8 @@ namespace transport_catalogue {
         void SetRoutingSettings(RoutingSettings settings);
 
         RoutingSettings& GetRoutingSettings();
+
+        stop_stop_to_distance GetDistanceBetweenStops();
     private:
         std::unordered_map<stop::Stop*, std::set<std::string_view>> buses_to_stop_;
         std::unordered_map<std::string_view, bus::Bus*> stop_to_bus_;

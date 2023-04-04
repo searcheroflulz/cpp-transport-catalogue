@@ -82,4 +82,10 @@ namespace transport_catalogue {
     RoutingSettings& TransportCatalogue::GetRoutingSettings() {
         return routing_settings_;
     }
+
+    using stop_stop_to_distance = std::unordered_map<std::pair<stop::Stop*, stop::Stop*>, uint32_t, stop::hash::Hash>;
+
+    stop_stop_to_distance TransportCatalogue::GetDistanceBetweenStops() {
+        return distance_between_stops_;
+    }
 }

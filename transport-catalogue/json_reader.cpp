@@ -46,13 +46,17 @@ namespace json_reader {
     }
 
     void JsonReader::LoadRoutingSettings(const std::map<std::string, json::Node>& info) {
-        catalogue_.SetRoutingSettings(transport_catalogue::RoutingSettings{info.at("bus_wait_time").AsInt(),
+        catalogue_->SetRoutingSettings(transport_catalogue::RoutingSettings{info.at("bus_wait_time").AsInt(),
                                                                            info.at("bus_velocity").AsDouble()});
     }
 
     void JsonReader::LoadDataFromJson() {
         auto asmap = document_.AsMap();
         for (auto& temp: asmap) {
+            if (temp.first == "serialization_settings") {
+                auto serialization_settings_ = temp.second.AsMap();
+                serializationsettings_ = {std::move(serialization_settings_.at("file"s).AsString())};
+            }
             if (temp.first == "base_requests") {
                 auto base_request = temp.second.AsArray();
                 InputDataToCatalogue(base_request);
@@ -61,19 +65,21 @@ namespace json_reader {
                 auto render_settings = temp.second.AsMap();
                 LoadRenderSettings(render_settings);
                 map_renderer::MapRenderer renderer(settings_);
-                renderer.LoadBuses(catalogue_.GetAllBuses());
-                renderer.LoadCoordinates(catalogue_);
+                renderer.LoadBuses(catalogue_->GetAllBuses());
+                renderer.LoadCoordinates(*catalogue_);
                 map_ = renderer.Output();
             }
             if (temp.first == "stat_requests") {
                 auto stat_requests = temp.second.AsArray();
-                OutputRequest(stat_requests);
+                LoadRequest(stat_requests);
             }
             if (temp.first == "routing_settings") {
                 auto routing_settings = temp.second.AsMap();
                 LoadRoutingSettings(routing_settings);
             }
+
         }
+        //router_->BuildTransportRouter(*catalogue_);
     }
 
     void JsonReader::InputDataToCatalogue(const std::vector<json::Node>& info) {
@@ -87,10 +93,10 @@ namespace json_reader {
             }
         }
         for (auto& stop: stops_) {
-            catalogue_.AddStop(stop.name, &stop);
+            catalogue_->AddStop(stop.name, &stop);
         }
         for (auto& stop: distance_between_stops_) {
-            catalogue_.AddDistanceBetweenStops(catalogue_.FindStop(stop.stop_1), catalogue_.FindStop(stop.stop_2), stop.distance);
+            catalogue_->AddDistanceBetweenStops(catalogue_->FindStop(stop.stop_1), catalogue_->FindStop(stop.stop_2), stop.distance);
         }
         for (auto& bus: buses) {
             LoadBuses(*bus);
@@ -119,35 +125,35 @@ namespace json_reader {
         bus.name = document.at("name").AsString();
         bus.circle = document.at("is_roundtrip").AsBool();
         for (const auto& stop: stops) {
-            bus.route.emplace_back(catalogue_.FindStop(stop.AsString()));
+            bus.route.emplace_back(catalogue_->FindStop(stop.AsString()));
         }
         auto* ptr = &buses_.emplace_back(bus);
-        catalogue_.AddBus(ptr->name, ptr);
+        catalogue_->AddBus(ptr->name, ptr);
     }
 
     void JsonReader::BuildJsonBus(json::Builder& builder, const std::map<std::string, json::Node>& document) {
         uint32_t route_length_int = 0;
         size_t stops_on_route = 0;
         size_t unique_stops_count = 0;
-        auto bus = catalogue_.GetBusInfo(document.at("name").AsString());
+        auto bus = catalogue_->GetBusInfo(document.at("name").AsString());
 
         double route_length = 0;
         if (bus != nullptr) {
             bus->circle ? stops_on_route = bus->route.size() : stops_on_route = bus->route.size() + bus->route.size() - 1;
             std::unordered_set<transport_catalogue::stop::Stop*> unique_stops = {bus->route.begin(), bus->route.end()};
             unique_stops_count = unique_stops.size();
-            route_length = catalogue_.GetRouteLength(bus->name);
+            route_length = catalogue_->GetRouteLength(bus->name);
         } else {
             builder.StartDict().Key("request_id").Value(document.at("id").AsInt()).Key("error_message").Value(std::string{"not found"}).EndDict();
             return;
         }
 
         for (size_t i = 0; i != bus->route.size() - 1; i++) {
-            route_length_int += catalogue_.GetDistanceBetween(bus->route[i], bus->route[i + 1]);
+            route_length_int += catalogue_->GetDistanceBetween(bus->route[i], bus->route[i + 1]);
         }
         if (!bus->circle) {
             for (size_t i = bus->route.size(); i != 1; i--) {
-                route_length_int += catalogue_.GetDistanceBetween(bus->route[i - 1], bus->route[i - 2]);
+                route_length_int += catalogue_->GetDistanceBetween(bus->route[i - 1], bus->route[i - 2]);
             }
         }
         double curvature = route_length_int / route_length;
@@ -160,10 +166,10 @@ namespace json_reader {
     }
 
     void JsonReader::BuildJsonStop(json::Builder& builder, const std::map<std::string, json::Node>& document) {
-        auto ptr = catalogue_.FindStop(document.at("name").AsString());
+        auto ptr = catalogue_->FindStop(document.at("name").AsString());
         if (ptr != nullptr) {
             std::vector<std::string> buses_vect;
-            if (catalogue_.GetBuses(ptr).empty()) {
+            if (catalogue_->GetBuses(ptr).empty()) {
                 builder.StartDict().Key("buses").StartArray();
                 for (const auto& bus: buses_vect) {
                     builder.Value(bus);
@@ -171,7 +177,7 @@ namespace json_reader {
                 builder.EndArray().Key("request_id").Value(document.at("id").AsInt()).EndDict();
                 return;
             }
-            std::set<std::string_view> buses = catalogue_.GetBuses(ptr);
+            std::set<std::string_view> buses = catalogue_->GetBuses(ptr);
             for (auto& bus: buses) {
                 buses_vect.emplace_back(bus);
             }
@@ -186,7 +192,7 @@ namespace json_reader {
     }
 
     void JsonReader::BuildJsonRoute(json::Builder& builder, const RouteRequest& request, transport_catalogue::TransportCatalogue catalogue, transport_router::TransportRouter& router) {
-        if (catalogue_.FindStop(request.from) && catalogue_.FindStop(request.to)) {
+        if (catalogue_->FindStop(request.from) && catalogue_->FindStop(request.to)) {
             std::optional<StopPairVertexId> pair_vertex_id_stop_from = router.GetPairVertexId(catalogue.FindStop(request.from));
             std::optional<StopPairVertexId> pair_vertex_id_stop_to = router.GetPairVertexId(catalogue.FindStop(request.to));
             std::optional<RouteInfo> route_info = router.GetRouteInfo(pair_vertex_id_stop_from->bus_wait_begin, pair_vertex_id_stop_to->bus_wait_begin);
@@ -225,10 +231,10 @@ namespace json_reader {
                 .Key("time"s).Value(wait_edge_info.time).EndDict();
     }
 
-    void JsonReader::OutputRequest(const std::vector<json::Node>& info) {
-        transport_router::TransportRouter router_(catalogue_.GetRoutingSettings());
-        router_.BuildTransportRouter(catalogue_);
-        json::Builder builder;
+    void JsonReader::LoadRequest(const std::vector<json::Node>& info) {
+        //transport_router::TransportRouter router_(catalogue_.GetRoutingSettings());
+        json_data_ = info;
+        /*json::Builder builder;
         builder.StartArray();
         if (info.empty()) {
             return;
@@ -245,10 +251,52 @@ namespace json_reader {
             }
             if (request.AsMap().at("type").AsString() == "Route") {
                 RouteRequest router_request{request.AsMap().at("from"s).AsString(), request.AsMap().at("to"s).AsString(), (request.AsMap().at("id"s).AsInt())};
-                BuildJsonRoute(builder, router_request, catalogue_, router_);
+                BuildJsonRoute(builder, router_request, *catalogue_, *router_);
+            }
+        }
+        builder.EndArray();
+        json::PrintNode(builder.Build(), json::PrintContext{std::cout});*/
+    }
+
+    void JsonReader::OutputRequest(transport_catalogue::TransportCatalogue* catalogue) {
+        catalogue_ = catalogue;
+        json::Builder builder;
+        builder.StartArray();
+        if (json_data_.empty()) {
+            return;
+        }
+        for (auto& request: json_data_) {
+            if (request.AsMap().at("type").AsString() == "Map") {
+                builder.StartDict().Key("map").Value(map_).Key("request_id").Value(request.AsMap().at("id").AsInt()).EndDict();
+            }
+            if (request.AsMap().at("type").AsString() == "Stop") {
+                BuildJsonStop(builder, request.AsMap());
+            }
+            if (request.AsMap().at("type").AsString() == "Bus") {
+                BuildJsonBus(builder, request.AsMap());
+            }
+            if (request.AsMap().at("type").AsString() == "Route") {
+                RouteRequest router_request{request.AsMap().at("from"s).AsString(), request.AsMap().at("to"s).AsString(), (request.AsMap().at("id"s).AsInt())};
+                BuildJsonRoute(builder, router_request, *catalogue_, *router_);
             }
         }
         builder.EndArray();
         json::PrintNode(builder.Build(), json::PrintContext{std::cout});
+    }
+
+    SerializationSettings JsonReader::GetSerializationSettings() {
+        return GetSerializationSettingsFromJson();
+    }
+
+    SerializationSettings JsonReader::GetSerializationSettingsFromJson() {
+        return serializationsettings_;
+    }
+
+    map_renderer::MapRenderSettings& JsonReader::GetMapRenderSettings() {
+        return settings_;
+    }
+
+    transport_router::TransportRouter* JsonReader::GetTransportRouter() {
+        return router_;
     }
 }

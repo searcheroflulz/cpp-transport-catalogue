@@ -6,6 +6,7 @@
 #include "domain.h"
 
 namespace transport_router {
+    using EdgeInfo = std::variant<WaitEdgeInfo, BusEdgeInfo>;
     class TransportRouter {
     public:
         explicit TransportRouter(transport_catalogue::RoutingSettings& settings) : settings_(settings){}
@@ -29,12 +30,30 @@ namespace transport_router {
         template <typename InputIt>
         void ProcessRoute(InputIt range_begin, InputIt range_end, transport_catalogue::TransportCatalogue transport_catalogue, std::string_view bus);
 
-        private:
+        transport_catalogue::RoutingSettings & GetRoutingSettings() const;
+
+        const graph::DirectedWeightedGraph<double>& GetGraph() const;
+
+        const graph::Router<double>& GetRouter() const;
+
+        const std::unordered_map<transport_catalogue::stop::Stop*, StopPairVertexId>& GetStopAsPairNumber() const;
+
+        const std::unordered_map<graph::EdgeId, std::variant<WaitEdgeInfo, BusEdgeInfo>> GetEdgeidToType() const;
+
+        void SetGraph(std::vector<graph::Edge<double>>&& edges, std::vector<graph::DirectedWeightedGraph<double>::IncidenceList>&& incidence_lists);
+
+        void SetStopAsPairNumber(std::unordered_map<transport_catalogue::stop::Stop*, StopPairVertexId>&& stop_as_pair_number);
+
+        void SetEdgeidToType(std::unordered_map<graph::EdgeId, EdgeInfo>&& edge_id_to_type);
+
+        void SetRouter(graph::Router<double>::RoutesInternalData&& routes_internal_data);
+
+    private:
             transport_catalogue::RoutingSettings& settings_;
             std::unique_ptr<graph::DirectedWeightedGraph<double>> graph_;
             std::unique_ptr<graph::Router<double>> router_;
             std::unordered_map<transport_catalogue::stop::Stop*, StopPairVertexId> stop_as_pair_number_;
-            std::unordered_map<graph::EdgeId, std::variant<WaitEdgeInfo, BusEdgeInfo>> edgeid_to_edgeinfo_;
+            std::unordered_map<graph::EdgeId, EdgeInfo> edgeid_to_edgeinfo_;
         };
 
         template <typename InputIt>
@@ -51,4 +70,6 @@ namespace transport_router {
                 }
             }
         }
+
+
     }
