@@ -64,10 +64,10 @@ namespace json_reader {
             if (temp.first == "render_settings") {
                 auto render_settings = temp.second.AsMap();
                 LoadRenderSettings(render_settings);
-                map_renderer::MapRenderer renderer(settings_);
-                renderer.LoadBuses(catalogue_->GetAllBuses());
-                renderer.LoadCoordinates(*catalogue_);
-                map_ = renderer.Output();
+                //map_renderer::MapRenderer renderer(settings_);
+                //renderer.LoadBuses(catalogue_->GetAllBuses());
+                //renderer.LoadCoordinates(*catalogue_);
+                //map_ = renderer.Output();
             }
             if (temp.first == "stat_requests") {
                 auto stat_requests = temp.second.AsArray();
@@ -101,6 +101,10 @@ namespace json_reader {
         for (auto& bus: buses) {
             LoadBuses(*bus);
         }
+    }
+
+    void JsonReader::SetMap(std::string map) {
+        map_ = map;
     }
 
     void JsonReader::LoadStops(const std::map<std::string, json::Node>& document) {
@@ -284,6 +288,10 @@ namespace json_reader {
         json::PrintNode(builder.Build(), json::PrintContext{std::cout});
     }
 
+    void JsonReader::SetTransportRouter(transport_router::TransportRouter* router) {
+        router_ = router;
+    }
+
     SerializationSettings JsonReader::GetSerializationSettings() {
         return GetSerializationSettingsFromJson();
     }
@@ -292,7 +300,7 @@ namespace json_reader {
         return serializationsettings_;
     }
 
-    map_renderer::MapRenderSettings& JsonReader::GetMapRenderSettings() {
+    map_renderer::RenderSettings& JsonReader::GetMapRenderSettings() {
         return settings_;
     }
 

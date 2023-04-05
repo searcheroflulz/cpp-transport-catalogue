@@ -64,7 +64,7 @@ namespace serial_handler {
         SerializationMapRenderSettings(map_renderer.GetRenderSettings());
     }
 
-    void SerialHandler::SerializationMapRenderSettings(const MapRenderSettings& render_settings) {
+    void SerialHandler::SerializationMapRenderSettings(const RenderSettings& render_settings) {
         map_renderer_proto::RenderSettings* render_settings_proto = transport_catalogue_proto_.mutable_map_renderer();
         render_settings_proto->set_width(render_settings.width);
         render_settings_proto->set_height(render_settings.height);
@@ -88,7 +88,7 @@ namespace serial_handler {
         }
     }
 
-    void SerialHandler::SerializationTransportRouter(const TransportRouter& transport_router) {
+    void SerialHandler::SerializationTransportRouter(TransportRouter& transport_router) {
         SerializationRoutingSettings(transport_router.GetRoutingSettings());
         SerializationGraph(transport_router.GetGraph());
         SerializationRouter(transport_router.GetRouter());
@@ -220,7 +220,7 @@ TransportCatalogue SerialHandler::GetTransportCatalogue() {
     return transport_catalogue;
 }
 
-MapRenderSettings SerialHandler::GetMapRenderSettings() {
+RenderSettings SerialHandler::GetMapRenderSettings() {
     return DeserializeMapRenderSettings();
 }
 
@@ -275,8 +275,8 @@ void SerialHandler::DeserializeDistanceBetweenStops(transport_catalogue::Transpo
 
 }
 
-MapRenderSettings SerialHandler::DeserializeMapRenderSettings() {
-    MapRenderSettings render_settings;
+RenderSettings SerialHandler::DeserializeMapRenderSettings() {
+    RenderSettings render_settings;
     const map_renderer_proto::RenderSettings& render_settings_proto = transport_catalogue_proto_.map_renderer();
     render_settings.width = render_settings_proto.width();
     render_settings.height = render_settings_proto.height();

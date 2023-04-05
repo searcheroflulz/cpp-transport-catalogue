@@ -30,7 +30,7 @@ namespace transport_router {
         template <typename InputIt>
         void ProcessRoute(InputIt range_begin, InputIt range_end, transport_catalogue::TransportCatalogue transport_catalogue, std::string_view bus);
 
-        transport_catalogue::RoutingSettings & GetRoutingSettings() const;
+        transport_catalogue::RoutingSettings& GetRoutingSettings();
 
         const graph::DirectedWeightedGraph<double>& GetGraph() const;
 

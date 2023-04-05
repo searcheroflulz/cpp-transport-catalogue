@@ -26,19 +26,19 @@ namespace serial_handler {
 
         void SerializationMapRenderSettings(const map_renderer::MapRenderer& map_renderer);
 
-        void SerializationTransportRouter(const transport_router::TransportRouter& transport_router);
+        void SerializationTransportRouter(transport_router::TransportRouter& transport_router);
 
         void Deserialize(std::istream& input);
 
         transport_catalogue::TransportCatalogue GetTransportCatalogue();
 
-        map_renderer::MapRenderSettings GetMapRenderSettings();
+        map_renderer::RenderSettings GetMapRenderSettings();
 
         transport_router::TransportRouter GetTransportRouter(transport_catalogue::TransportCatalogue& transport_catalogue);
 
         const SerializationSettings& GetSettings() const;
 
-        void SerializationMapRenderSettings(const map_renderer::MapRenderSettings& render_settings);
+        void SerializationMapRenderSettings(const map_renderer::RenderSettings& render_settings);
 
     private:
         SerializationSettings settings_;
@@ -59,7 +59,7 @@ namespace serial_handler {
 
         void DeserializeDistanceBetweenStops(transport_catalogue::TransportCatalogue& transport_catalogue);
 
-        map_renderer::MapRenderSettings DeserializeMapRenderSettings();
+        map_renderer::RenderSettings DeserializeMapRenderSettings();
 
         void SerializationColor(svg_proto::Color* color_proto, const svg::Color& color);
 

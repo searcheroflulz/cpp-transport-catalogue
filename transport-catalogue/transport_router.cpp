@@ -67,7 +67,7 @@ namespace transport_router {
         return std::nullopt;
     }
 
-    transport_catalogue::RoutingSettings& TransportRouter::GetRoutingSettings() const {
+    transport_catalogue::RoutingSettings& TransportRouter::GetRoutingSettings(){
         return settings_;
     }
 

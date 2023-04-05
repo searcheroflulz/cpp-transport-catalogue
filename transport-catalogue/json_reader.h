@@ -56,7 +56,11 @@ namespace json_reader {
 
         void ErrorMessage(json::Builder& builder, int id);
 
-        map_renderer::MapRenderSettings& GetMapRenderSettings();
+        void SetTransportRouter(transport_router::TransportRouter* router);
+
+        void SetMap(std::string map);
+
+        map_renderer::RenderSettings& GetMapRenderSettings();
         transport_router::TransportRouter* GetTransportRouter();
 
         void OutputRequest(transport_catalogue::TransportCatalogue* catalogue);
@@ -68,7 +72,7 @@ namespace json_reader {
         std::deque<Distance> distance_between_stops_;
         const json::Node& document_;
         std::deque<transport_catalogue::bus::Bus> buses_;
-        map_renderer::MapRenderSettings settings_;
+        map_renderer::RenderSettings settings_;
         std::string map_;
         SerializationSettings serializationsettings_;
         SerializationSettings GetSerializationSettingsFromJson();
