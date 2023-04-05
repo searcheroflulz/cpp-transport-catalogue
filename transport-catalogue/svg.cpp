@@ -99,4 +99,4 @@ namespace svg {
         out << "/>"sv;
     }
 
-}  // namespace svg
+}

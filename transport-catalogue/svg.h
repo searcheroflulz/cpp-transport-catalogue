@@ -372,4 +372,4 @@ namespace svg {
     private:
         std::deque<std::unique_ptr<Object>> objects_;
     };
-}  // namespace svg
+}

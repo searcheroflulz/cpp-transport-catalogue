@@ -64,10 +64,6 @@ namespace json_reader {
             if (temp.first == "render_settings") {
                 auto render_settings = temp.second.AsMap();
                 LoadRenderSettings(render_settings);
-                //map_renderer::MapRenderer renderer(settings_);
-                //renderer.LoadBuses(catalogue_->GetAllBuses());
-                //renderer.LoadCoordinates(*catalogue_);
-                //map_ = renderer.Output();
             }
             if (temp.first == "stat_requests") {
                 auto stat_requests = temp.second.AsArray();
@@ -77,9 +73,7 @@ namespace json_reader {
                 auto routing_settings = temp.second.AsMap();
                 LoadRoutingSettings(routing_settings);
             }
-
         }
-        //router_->BuildTransportRouter(*catalogue_);
     }
 
     void JsonReader::InputDataToCatalogue(const std::vector<json::Node>& info) {
@@ -236,30 +230,8 @@ namespace json_reader {
     }
 
     void JsonReader::LoadRequest(const std::vector<json::Node>& info) {
-        //transport_router::TransportRouter router_(catalogue_.GetRoutingSettings());
         json_data_ = info;
-        /*json::Builder builder;
-        builder.StartArray();
-        if (info.empty()) {
-            return;
-        }
-        for (auto& request: info) {
-            if (request.AsMap().at("type").AsString() == "Map") {
-                builder.StartDict().Key("map").Value(map_).Key("request_id").Value(request.AsMap().at("id").AsInt()).EndDict();
-            }
-            if (request.AsMap().at("type").AsString() == "Stop") {
-                BuildJsonStop(builder, request.AsMap());
-            }
-            if (request.AsMap().at("type").AsString() == "Bus") {
-                BuildJsonBus(builder, request.AsMap());
-            }
-            if (request.AsMap().at("type").AsString() == "Route") {
-                RouteRequest router_request{request.AsMap().at("from"s).AsString(), request.AsMap().at("to"s).AsString(), (request.AsMap().at("id"s).AsInt())};
-                BuildJsonRoute(builder, router_request, *catalogue_, *router_);
-            }
-        }
-        builder.EndArray();
-        json::PrintNode(builder.Build(), json::PrintContext{std::cout});*/
+
     }
 
     void JsonReader::OutputRequest(transport_catalogue::TransportCatalogue* catalogue) {

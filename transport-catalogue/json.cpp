@@ -410,4 +410,4 @@ namespace json {
         return std::get<bool>(value_);
     }
 
-}  // namespace json
+}

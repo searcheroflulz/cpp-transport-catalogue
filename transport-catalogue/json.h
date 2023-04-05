@@ -106,4 +106,4 @@ namespace json {
 
     void PrintNode(const Node& node, const PrintContext& ctx);
 
-}  // namespace json
+}

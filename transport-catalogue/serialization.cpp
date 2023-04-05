@@ -398,4 +398,4 @@ std::unordered_map<graph::EdgeId, EdgeInfo> SerialHandler::DeserializeEdgeidToTy
     return edge_id_to_type;
 }
 
-} // namespace serial_handler
+}

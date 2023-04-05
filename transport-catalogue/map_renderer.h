@@ -75,7 +75,7 @@ namespace sphere_projector {
         }
     }
 
-} // namespace sphere_projector
+}
 
 namespace map_renderer {
 
@@ -148,4 +148,4 @@ namespace map_renderer {
         void AppendTitleForNameStop(std::string_view name, const svg::Point& point, svg::Color color);
     };
 
-} // namespace map_renderer
+}

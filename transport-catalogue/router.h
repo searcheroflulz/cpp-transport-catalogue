@@ -125,4 +125,4 @@ namespace graph {
     template <typename Weight>
     Router<Weight>::Router(const Graph& graph, RoutesInternalData&& routes_internal_data) : graph_(graph), routes_internal_data_(move(routes_internal_data))  { }
 
-}  // namespace graph
+}

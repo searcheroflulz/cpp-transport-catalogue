@@ -5,8 +5,6 @@
 
 #include "json.h"
 
-
-
 namespace json {
 
     class DictItemContext;

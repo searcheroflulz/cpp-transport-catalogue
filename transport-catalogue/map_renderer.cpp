@@ -197,4 +197,4 @@ namespace map_renderer {
         return settings_;
     }
 
-} // namespace map_renderer
+}

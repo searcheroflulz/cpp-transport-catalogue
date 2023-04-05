@@ -90,4 +90,4 @@ namespace graph {
     const std::vector<typename DirectedWeightedGraph<Weight>::IncidenceList>& DirectedWeightedGraph<Weight>::GetIncidenceList() const {
         return incidence_lists_;
     }
-}  // namespace graph
+}
